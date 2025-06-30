@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.kmbeast.mapper.FlashSaleOrderMapper">
+
+    <!-- 查询用户的秒杀订单 -->
+    <select id="queryOrdersByUserId" resultType="cn.kmbeast.pojo.entity.FlashSaleOrder">
+        SELECT
+            id, order_id, user_id, item_id, price, order_time, status, create_time, update_time
+        FROM flash_sale_order
+        WHERE user_id = #{userId}
+        ORDER BY create_time DESC
+    </select>
+    
+    <!-- 查询商品的秒杀订单 -->
+    <select id="queryOrdersByItemId" resultType="cn.kmbeast.pojo.entity.FlashSaleOrder">
+        SELECT
+            id, order_id, user_id, item_id, price, order_time, status, create_time, update_time
+        FROM flash_sale_order
+        WHERE item_id = #{itemId}
+        ORDER BY create_time DESC
+    </select>
+    
+    <!-- 统计商品的秒杀订单数量（已售数量） -->
+    <select id="countOrdersByItemId" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM flash_sale_order
+        WHERE item_id = #{itemId} AND status IN (1, 2)
+    </select>
+    
+    <!-- 查询用户是否已购买某商品 -->
+    <select id="countUserOrder" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM flash_sale_order
+        WHERE user_id = #{userId} AND item_id = #{itemId} AND status IN (1, 2)
+    </select>
+    
+    <!-- 查询所有秒杀订单（管理员使用） -->
+    <select id="queryAllOrders" resultType="cn.kmbeast.pojo.entity.FlashSaleOrder">
+        SELECT
+            id, order_id, user_id, item_id, price, order_time, status, create_time, update_time
+        FROM flash_sale_order
+        <where>
+            <if test="queryDto.orderId != null and queryDto.orderId != ''">
+                AND order_id LIKE CONCAT('%', #{queryDto.orderId}, '%')
+            </if>
+            <if test="queryDto.userId != null">
+                AND user_id = #{queryDto.userId}
+            </if>
+            <if test="queryDto.itemId != null">
+                AND item_id = #{queryDto.itemId}
+            </if>
+            <if test="queryDto.status != null">
+                AND status = #{queryDto.status}
+            </if>
+            <if test="queryDto.orderTimeBegin != null">
+                AND order_time &gt;= #{queryDto.orderTimeBegin}
+            </if>
+            <if test="queryDto.orderTimeEnd != null">
+                AND order_time &lt;= #{queryDto.orderTimeEnd}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+</mapper> 

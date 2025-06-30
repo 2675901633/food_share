@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.kmbeast.mapper.FlashSaleItemMapper">
+
+    <!-- 查询秒杀商品列表 -->
+    <select id="queryFlashSaleItems" resultType="cn.kmbeast.pojo.vo.FlashSaleItemVO">
+        SELECT
+            id, name, description, image, original_price, flash_price,
+            stock, start_time, end_time, status, create_time, update_time
+        FROM flash_sale_item
+        <where>
+            <if test="name != null and name != ''">
+                AND name LIKE CONCAT('%', #{name}, '%')
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="startTimeBegin != null">
+                AND start_time &gt;= #{startTimeBegin}
+            </if>
+            <if test="startTimeEnd != null">
+                AND start_time &lt;= #{startTimeEnd}
+            </if>
+            <if test="endTimeBegin != null">
+                AND end_time &gt;= #{endTimeBegin}
+            </if>
+            <if test="endTimeEnd != null">
+                AND end_time &lt;= #{endTimeEnd}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+        <if test="current != null and size != null">
+            LIMIT #{size} OFFSET #{current}
+        </if>
+    </select>
+
+    <!-- 根据ID查询秒杀商品 -->
+    <select id="getFlashSaleItemById" resultType="cn.kmbeast.pojo.vo.FlashSaleItemVO">
+        SELECT
+            id, name, description, image, original_price, flash_price,
+            stock, start_time, end_time, status, create_time, update_time
+        FROM flash_sale_item
+        WHERE id = #{id}
+    </select>
+
+    <!-- 查询正在进行中的秒杀商品 -->
+    <select id="queryOngoingFlashSaleItems" resultType="cn.kmbeast.pojo.vo.FlashSaleItemVO">
+        SELECT
+            id, name, description, image, original_price, flash_price,
+            stock, start_time, end_time, status, create_time, update_time
+        FROM flash_sale_item
+        WHERE status = 1
+        ORDER BY start_time ASC
+    </select>
+
+    <!-- 更新商品库存 -->
+    <update id="updateStock">
+        UPDATE flash_sale_item
+        SET stock = #{stock}, update_time = NOW()
+        WHERE id = #{itemId}
+    </update>
+
+    <!-- 扣减库存 -->
+    <update id="decreaseStock">
+        UPDATE flash_sale_item
+        SET stock = stock - 1, update_time = NOW()
+        WHERE id = #{itemId} AND stock > 0
+    </update>
+
+    <!-- 查询所有秒杀商品ID -->
+    <select id="getAllItemIds" resultType="java.lang.Integer">
+        SELECT id FROM flash_sale_item
+    </select>
+</mapper> 
