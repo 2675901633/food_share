@@ -2,11 +2,15 @@ package cn.kmbeast.utils;
 
 /**
  * 缓存常量类，定义缓存键和过期时间
+ * 针对集群模式优化key设计
  */
 public class CacheConstants {
 
+    // ==================== 基础业务缓存 ====================
+
     /**
      * 美食详情缓存前缀
+     * 使用hash tag确保相关key在同一slot
      */
     public static final String GOURMET_DETAIL_KEY_PREFIX = "gourmet:detail:";
 
@@ -27,8 +31,9 @@ public class CacheConstants {
 
     /**
      * 用户信息缓存前缀
+     * 使用hash tag确保用户相关的key在同一个slot
      */
-    public static final String USER_INFO_KEY_PREFIX = "user:info:";
+    public static final String USER_INFO_KEY_PREFIX = "user:{info}:";
 
     /**
      * 推荐美食缓存前缀
@@ -52,23 +57,27 @@ public class CacheConstants {
 
     /**
      * 用户浏览历史缓存前缀
+     * 使用hash tag确保用户相关的key在同一个slot
      */
-    public static final String USER_HISTORY_KEY_PREFIX = "user:history:";
+    public static final String USER_HISTORY_KEY_PREFIX = "user:{history}:";
 
     /**
      * 用户偏好缓存前缀
+     * 使用hash tag确保用户相关的key在同一个slot
      */
-    public static final String USER_PREFERENCES_KEY_PREFIX = "user:preferences:";
+    public static final String USER_PREFERENCES_KEY_PREFIX = "user:{preferences}:";
 
     /**
      * 用户最近浏览缓存前缀
+     * 使用hash tag确保用户相关的key在同一个slot
      */
-    public static final String USER_RECENT_VIEW_KEY_PREFIX = "user:recent:";
+    public static final String USER_RECENT_VIEW_KEY_PREFIX = "user:{recent}:";
 
     /**
      * 用户个性化推荐缓存前缀
+     * 使用hash tag确保用户相关的key在同一个slot
      */
-    public static final String USER_RECOMMENDATIONS_KEY_PREFIX = "user:recommendations:";
+    public static final String USER_RECOMMENDATIONS_KEY_PREFIX = "user:{recommendations}:";
 
     /**
      * 热门美食排行榜缓存键
@@ -79,6 +88,51 @@ public class CacheConstants {
      * 美食UV统计前缀
      */
     public static final String GOURMET_UV_KEY_PREFIX = "gourmet:uv:";
+
+    // ==================== 秒杀相关缓存 ====================
+
+    /**
+     * 秒杀商品库存缓存前缀
+     * 使用hash tag确保秒杀相关的key在同一个slot
+     */
+    public static final String FLASH_SALE_STOCK_PREFIX = "flash:{stock}:";
+
+    /**
+     * 秒杀商品信息缓存前缀
+     * 使用hash tag确保秒杀相关的key在同一个slot
+     */
+    public static final String FLASH_SALE_ITEM_PREFIX = "flash:{item}:";
+
+    /**
+     * 秒杀商品列表缓存键
+     */
+    public static final String FLASH_SALE_ITEM_LIST = "flash:item:list";
+
+    /**
+     * 秒杀分布式锁前缀
+     * 使用hash tag确保秒杀相关的key在同一个slot
+     */
+    public static final String FLASH_SALE_LOCK_PREFIX = "flash:{lock}:";
+
+    /**
+     * 秒杀接口访问限流前缀
+     * 使用hash tag确保秒杀相关的key在同一个slot
+     */
+    public static final String FLASH_SALE_RATE_LIMIT_PREFIX = "flash:{limit}:";
+
+    /**
+     * 秒杀订单缓存前缀
+     * 使用hash tag确保秒杀相关的key在同一个slot
+     */
+    public static final String FLASH_SALE_ORDER_PREFIX = "flash:{order}:";
+
+    /**
+     * 用户秒杀记录前缀（防止重复下单）
+     * 使用hash tag确保秒杀相关的key在同一个slot
+     */
+    public static final String FLASH_SALE_USER_RECORD_PREFIX = "flash:{record}:";
+
+    // ==================== 过期时间设置 ====================
 
     /**
      * 美食详情缓存过期时间（秒）- 2小时
@@ -164,41 +218,6 @@ public class CacheConstants {
      * 秒杀相关常量
      */
     /**
-     * 秒杀商品库存缓存前缀
-     */
-    public static final String FLASH_SALE_STOCK_PREFIX = "flash:stock:";
-
-    /**
-     * 秒杀商品信息缓存前缀
-     */
-    public static final String FLASH_SALE_ITEM_PREFIX = "flash:item:";
-
-    /**
-     * 秒杀商品列表缓存键
-     */
-    public static final String FLASH_SALE_ITEM_LIST = "flash:item:list";
-
-    /**
-     * 秒杀分布式锁前缀
-     */
-    public static final String FLASH_SALE_LOCK_PREFIX = "flash:lock:";
-
-    /**
-     * 秒杀接口访问限流前缀
-     */
-    public static final String FLASH_SALE_RATE_LIMIT_PREFIX = "flash:limit:";
-
-    /**
-     * 秒杀订单缓存前缀
-     */
-    public static final String FLASH_SALE_ORDER_PREFIX = "flash:order:";
-
-    /**
-     * 用户秒杀记录前缀（防止重复下单）
-     */
-    public static final String FLASH_SALE_USER_RECORD_PREFIX = "flash:record:";
-
-    /**
      * 秒杀商品信息缓存过期时间（秒）- 1小时
      */
     public static final long FLASH_SALE_ITEM_EXPIRE = 3600;
@@ -245,12 +264,21 @@ public class CacheConstants {
      */
     public static final String RESTAURANT_GEO_KEY = "restaurants:geo";
 
+    // ==================== PubSub消息频道常量 ====================
+
     /**
-     * PubSub消息频道常量
+     * 系统广播频道
      */
-    public static final String USER_NOTIFICATION_CHANNEL_PREFIX = "user:notification:";
     public static final String SYSTEM_BROADCAST_CHANNEL = "system:broadcast";
+
+    /**
+     * 秒杀通知频道
+     */
     public static final String FLASH_SALE_NOTIFICATION_CHANNEL = "flash:sale:notification";
+
+    /**
+     * 美食推荐频道前缀
+     */
     public static final String GOURMET_RECOMMENDATION_CHANNEL_PREFIX = "gourmet:recommendation:";
 
     /**

@@ -1,20 +1,21 @@
-# Redis集群配置
+# Redis哨兵配置
 spring:
   redis:
-    # 集群配置
-    cluster:
-      # 集群节点列表
+    # 哨兵配置
+    sentinel:
+      # 主节点名称（与哨兵配置中的master名称一致）
+      master: mymaster
+      # 哨兵节点列表
       nodes:
-        - 127.0.0.1:7001
-        - 127.0.0.1:7002
-        - 127.0.0.1:7003
-        - 127.0.0.1:7004
-        - 127.0.0.1:7005
-        - 127.0.0.1:7006
-      # 最大重定向次数
-      max-redirects: 3
+        - 127.0.0.1:26379
+        - 127.0.0.1:26380
+        - 127.0.0.1:26381
+      # 哨兵密码（如果设置了）
+      # password: your_sentinel_password
     # Redis密码（如果设置了）
-    # password: your_password
+    # password: your_redis_password
+    # 数据库
+    database: 0
     # 连接超时时间
     timeout: 3000ms
     # 连接池配置
@@ -28,20 +29,13 @@ spring:
         max-idle: 10
         # 连接池中的最小空闲连接
         min-idle: 5
-      # 集群拓扑刷新配置
-      cluster:
-        refresh:
-          # 支持集群拓扑动态感应
-          adaptive: true
-          # 定时刷新集群拓扑，单位毫秒
-          period: 30000
 
 # 应用配置
 app:
   redis:
-    # 是否启用集群模式
-    cluster-enabled: true
-    # 集群健康检查间隔（秒）
+    # 启用哨兵模式
+    sentinel-enabled: true
+    # 哨兵健康检查间隔（秒）
     health-check-interval: 30
     # 故障转移超时时间（毫秒）
     failover-timeout: 5000

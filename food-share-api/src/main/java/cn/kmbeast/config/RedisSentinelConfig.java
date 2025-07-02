@@ -11,9 +11,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
+import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
@@ -23,70 +22,78 @@ import java.time.Duration;
 import java.util.List;
 
 /**
- * Redis集群配置类
- * 支持Redis Cluster模式，提供水平扩展和高可用性
+ * Redis哨兵配置类
+ * 支持Redis Sentinel模式，提供高可用性
  */
 @Slf4j
 @Configuration
-@ConditionalOnProperty(name = "app.redis.cluster-enabled", havingValue = "true")
-public class RedisClusterConfig {
+@ConditionalOnProperty(name = "app.redis.sentinel-enabled", havingValue = "true")
+public class RedisSentinelConfig {
 
-    @Value("${spring.redis.cluster.nodes}")
-    private List<String> clusterNodes;
+    @Value("${spring.redis.sentinel.master}")
+    private String masterName;
 
-    @Value("${spring.redis.cluster.max-redirects:3}")
-    private Integer maxRedirects;
+    @Value("${spring.redis.sentinel.nodes}")
+    private List<String> sentinelNodes;
 
     @Value("${spring.redis.timeout:3000ms}")
     private Duration timeout;
+
+    @Value("${spring.redis.database:0}")
+    private int database;
 
     @Value("${spring.redis.password:}")
     private String password;
 
     /**
-     * Redis集群配置
+     * Redis哨兵配置
      */
     @Bean
     @Primary
-    public RedisClusterConfiguration redisClusterConfiguration() {
-        RedisClusterConfiguration clusterConfig = new RedisClusterConfiguration(clusterNodes);
-        
-        // 设置最大重定向次数
-        clusterConfig.setMaxRedirects(maxRedirects);
-        
+    public RedisSentinelConfiguration redisSentinelConfiguration() {
+        RedisSentinelConfiguration sentinelConfig = new RedisSentinelConfiguration();
+
+        // 设置主节点名称
+        sentinelConfig.setMaster(masterName);
+
+        // 添加哨兵节点
+        for (String node : sentinelNodes) {
+            String[] parts = node.split(":");
+            sentinelConfig.sentinel(parts[0], Integer.parseInt(parts[1]));
+        }
+
+        // 设置数据库
+        sentinelConfig.setDatabase(database);
+
         // 设置密码（如果有）
         if (password != null && !password.trim().isEmpty()) {
-            clusterConfig.setPassword(password);
+            sentinelConfig.setPassword(password);
         }
-        
-        log.info("Redis集群配置初始化完成，节点: {}, 最大重定向: {}", clusterNodes, maxRedirects);
-        return clusterConfig;
+
+        log.info("Redis哨兵配置初始化完成，主节点: {}, 哨兵节点: {}", masterName, sentinelNodes);
+        return sentinelConfig;
     }
 
     /**
-     * Redis集群连接工厂
+     * Redis连接工厂
      */
     @Bean
     @Primary
-    public RedisConnectionFactory clusterRedisConnectionFactory(RedisClusterConfiguration clusterConfig) {
-        LettuceClientConfiguration clientConfig = LettuceClientConfiguration.builder()
-                .commandTimeout(timeout)
-                .readFrom(io.lettuce.core.ReadFrom.REPLICA_PREFERRED) // 优先从从节点读取
-                .build();
-        
-        LettuceConnectionFactory factory = new LettuceConnectionFactory(clusterConfig, clientConfig);
+    public RedisConnectionFactory redisConnectionFactory(RedisSentinelConfiguration sentinelConfig) {
+        LettuceConnectionFactory factory = new LettuceConnectionFactory(sentinelConfig);
+        factory.setValidateConnection(true);
         factory.afterPropertiesSet();
-        
-        log.info("Redis集群连接工厂初始化完成");
+
+        log.info("Redis哨兵连接工厂初始化完成");
         return factory;
     }
 
     /**
-     * Redis集群模板配置
+     * Redis模板配置（哨兵版）
      */
     @Bean
     @Primary
-    public RedisTemplate<String, Object> clusterRedisTemplate(RedisConnectionFactory connectionFactory) {
+    public RedisTemplate<String, Object> sentinelRedisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
 
@@ -112,7 +119,7 @@ public class RedisClusterConfig {
 
         template.afterPropertiesSet();
 
-        log.info("Redis集群模板配置完成");
+        log.info("Redis哨兵模板配置完成");
         return template;
     }
-}
+} 
