@@ -20,21 +20,31 @@ spring:
     # 连接池配置
     lettuce:
       pool:
-        # 连接池最大连接数
-        max-active: 20
-        # 连接池最大阻塞等待时间
-        max-wait: -1ms
-        # 连接池中的最大空闲连接
-        max-idle: 10
-        # 连接池中的最小空闲连接
-        min-idle: 5
+        # 高并发优化配置
+        max-active: 100 # 增加最大连接数
+        max-wait: 3000ms # 设置合理等待时间
+        max-idle: 50 # 增加最大空闲连接
+        min-idle: 20 # 增加最小空闲连接
+        time-between-eviction-runs: 30000ms
       # 集群拓扑刷新配置
       cluster:
         refresh:
           # 支持集群拓扑动态感应
           adaptive: true
           # 定时刷新集群拓扑，单位毫秒
-          period: 30000
+          period: 30000ms
+      # 新增连接超时配置
+      shutdown-timeout: 100ms
+
+# 应用高并发配置
+server:
+  tomcat:
+    threads:
+      max: 200 # 最大线程数
+      min-spare: 50 # 最小空闲线程数
+    max-connections: 8192 # 最大连接数
+    accept-count: 100 # 等待队列长度
+    connection-timeout: 20000ms
 
 # 应用配置
 app:
@@ -45,6 +55,11 @@ app:
     health-check-interval: 30
     # 故障转移超时时间（毫秒）
     failover-timeout: 5000
+  # 新增高并发配置
+  performance:
+    enable-async: true
+    thread-pool-size: 50
+    queue-capacity: 1000
 
 # 日志配置
 logging:

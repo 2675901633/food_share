@@ -9,6 +9,8 @@ import cn.kmbeast.pojo.vo.ChartVO;
 import cn.kmbeast.pojo.vo.GourmetListVO;
 import cn.kmbeast.pojo.vo.GourmetVO;
 import cn.kmbeast.service.GourmetService;
+import cn.kmbeast.annotation.RateLimit;
+import cn.kmbeast.annotation.RateLimitType;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -79,7 +81,7 @@ public class GourmetController {
      * @param id 美食做法ID
      * @return Result<List < GourmetVO>> 响应结果
      */
-    @Pager
+    @RateLimit(limit = 50, window = 60, type = RateLimitType.USER, message = "查询过于频繁")
     @GetMapping(value = "/{id}")
     @ResponseBody
     public Result<List<GourmetVO>> queryById(@PathVariable Integer id) {
@@ -130,7 +132,7 @@ public class GourmetController {
      * @param gourmetQueryDto 查询参数
      * @return Result<List < GourmetVO>> 响应结果
      */
-    @Pager
+    @RateLimit(limit = 100, window = 60, type = RateLimitType.IP, message = "查询过于频繁")
     @Protector(role = "管理员")
     @PostMapping(value = "/queryByView")
     @ResponseBody

@@ -1,0 +1,47 @@
+# Redis哨兵配置
+spring:
+  redis:
+    # 哨兵配置
+    sentinel:
+      # 主节点名称（与哨兵配置中的master名称一致）
+      master: mymaster
+      # 哨兵节点列表
+      nodes:
+        - 127.0.0.1:26379
+        - 127.0.0.1:26380
+        - 127.0.0.1:26381
+      # 哨兵密码（如果设置了）
+      # password: your_sentinel_password
+    # Redis密码（如果设置了）
+    # password: your_redis_password
+    # 数据库
+    database: 0
+    # 连接超时时间
+    timeout: 3000ms
+    # 连接池配置
+    lettuce:
+      pool:
+        # 连接池最大连接数
+        max-active: 20
+        # 连接池最大阻塞等待时间
+        max-wait: -1ms
+        # 连接池中的最大空闲连接
+        max-idle: 10
+        # 连接池中的最小空闲连接
+        min-idle: 5
+
+# 应用配置
+app:
+  redis:
+    # 启用哨兵模式
+    sentinel-enabled: true
+    # 哨兵健康检查间隔（秒）
+    health-check-interval: 30
+    # 故障转移超时时间（毫秒）
+    failover-timeout: 5000
+
+# 日志配置
+logging:
+  level:
+    org.springframework.data.redis: DEBUG
+    io.lettuce.core: DEBUG

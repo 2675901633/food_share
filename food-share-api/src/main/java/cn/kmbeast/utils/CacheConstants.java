@@ -1,5 +1,7 @@
 package cn.kmbeast.utils;
 
+import java.util.Random;
+
 /**
  * 缓存常量类，定义缓存键和过期时间
  * 针对集群模式优化key设计
@@ -285,4 +287,30 @@ public class CacheConstants {
      * 热门排行榜过期时间（秒）- 1小时
      */
     public static final long TRENDING_FOODS_EXPIRE_NEW = 3600;
+
+    /**
+     * 获取随机化过期时间，防止缓存雪崩
+     * @param baseExpire 基础过期时间
+     * @return 随机化后的过期时间
+     */
+    public static long getRandomizedExpire(long baseExpire) {
+        Random random = new Random();
+        // 在基础过期时间上增加0-20%的随机时间
+        long randomOffset = (long) (baseExpire * 0.2 * random.nextDouble());
+        return baseExpire + randomOffset;
+    }
+
+    /**
+     * 获取随机化的美食详情过期时间
+     */
+    public static long getRandomizedGourmetDetailExpire() {
+        return getRandomizedExpire(GOURMET_DETAIL_EXPIRE);
+    }
+
+    /**
+     * 获取随机化的美食列表过期时间
+     */
+    public static long getRandomizedGourmetListExpire() {
+        return getRandomizedExpire(GOURMET_LIST_EXPIRE);
+    }
 }

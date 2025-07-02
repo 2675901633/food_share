@@ -22,6 +22,7 @@ import cn.kmbeast.utils.CacheConstants;
 import cn.kmbeast.utils.DateUtil;
 import cn.kmbeast.utils.RedisUtil;
 import cn.kmbeast.utils.TextUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
  * 美食做法业务逻辑接口实现类
  */
 @Service
+@Slf4j
 public class GourmetServiceImpl implements GourmetService {
 
     @Resource
@@ -44,6 +46,12 @@ public class GourmetServiceImpl implements GourmetService {
 
     @Resource
     private RedisUtil redisUtil;
+
+    @Resource
+    private BloomFilterService bloomFilterService;
+
+    @Resource
+    private AsyncService asyncService;
 
     /**
      * 新增
@@ -173,6 +181,17 @@ public class GourmetServiceImpl implements GourmetService {
     @Override
     @CacheableGourmet(type = CacheType.SINGLE)
     public Result<List<GourmetVO>> queryById(Integer id) {
+        // 1. 参数校验
+        if (id == null || id <= 0) {
+            return ApiResult.error("美食ID无效");
+        }
+
+        // 2. 布隆过滤器检查
+        if (!bloomFilterService.mightContainGourmet(id)) {
+            log.info("布隆过滤器判断美食ID不存在: {}", id);
+            return ApiResult.success("美食不存在", null);
+        }
+
         GourmetQueryDto gourmetQueryDto = new GourmetQueryDto();
         gourmetQueryDto.setId(id);
 
@@ -191,9 +210,8 @@ public class GourmetServiceImpl implements GourmetService {
 
         // 增加浏览量计数
         if (categoryList != null && !categoryList.isEmpty()) {
-            // 使用Redis增加浏览量
-            String viewCountKey = CacheConstants.GOURMET_VIEW_COUNT_KEY_PREFIX + id;
-            redisUtil.incr(viewCountKey, 1);
+            // 使用异步服务更新浏览量
+            asyncService.updateViewCountAsync(id);
         }
 
         return ApiResult.success(categoryList);

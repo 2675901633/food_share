@@ -33,7 +33,7 @@ spring:
 mybatis:
   mapper-locations: classpath:mapper/*.xml
   configuration:
-    map-underscore-to-camel-case: true  #开启驼峰命名和下划线命名的转换
+    map-underscore-to-camel-case: true #开启驼峰命名和下划线命名的转换
 
 # 日志配置
 logging:
@@ -45,8 +45,25 @@ logging:
     cn.kmbeast.utils.RedisUtil: DEBUG
     cn.kmbeast.controller.RedisCacheTestController: DEBUG
   pattern:
-    console: '%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n'
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
 
+# 添加监控和告警配置
+app:
+  alert:
+    memory-threshold: 80 # 内存使用率告警阈值
+    hit-rate-threshold: 90 # 缓存命中率告警阈值
+    slow-log-threshold: 10 # 慢查询数量告警阈值
+  performance:
+    enable-async: true # 启用异步处理
+    thread-pool-size: 50 # 线程池大小
+    queue-capacity: 1000 # 队列容量
 
-
-
+# Spring Boot Actuator配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
